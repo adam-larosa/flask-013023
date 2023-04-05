@@ -1,7 +1,7 @@
-from flask import Flask
+from flask import Flask, make_response, request
 from flask_migrate import Migrate
-
-from models import db
+import ipdb
+from models import db, Game
 
 
 app = Flask( __name__ )
@@ -17,9 +17,61 @@ db.init_app( app )
 
 
 
+
+
+@app.route( '/games', methods = [ 'GET', 'POST' ] )
+def games():
+    
+    if request.method == 'GET':
+        game_list = []
+        for game in Game.query.all():
+            game_dict = {
+                "id": game.id,
+                "title": game.title,
+                "price": game.price   
+            }
+            game_list.append( game_dict )
+        
+        response = make_response( game_list, 200 )
+        return response
+
+    elif request.method == 'POST':
+
+        data = request.get_json()
+
+        new_game = Game( 
+            title = data.get( 'title' ), price = data.get( 'price' ) 
+        )
+        db.session.add( new_game )
+        db.session.commit()
+        return make_response( new_game.to_dict(), 201 )
+
+
+
+
+@app.route( '/games/<int:id>', methods = [ 'GET', 'PATCH', 'DELETE'] )
+def games_by_id( id ):
+    
+    game = Game.query.filter( Game.id == id ).first()
+
+    if game == None:
+        return make_response( { "error": 'game not found' }, 404 )
+
+    if request.method == 'GET':
+        response = make_response( game.to_dict(), 200 )
+        return response
+    elif request.method == 'PATCH'
+
+        #change that game instance and commit to the db, then respond
+    elif request.method == 'DELETE'
+        #delete the insance from the DB, then....
+    
+
+
 @app.route( '/' )
 def index():
     return "<h1>hello meow!!</h1>"
+
 
 if __name__ == '__main__':
     app.run( port=8000, debug=True )
