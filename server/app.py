@@ -1,7 +1,11 @@
 from flask import Flask, make_response, request
 from flask_migrate import Migrate
+from flask_restful import Api, Resource
+from werkzeug.exceptions import NotFound
+
 import ipdb
-from models import db, Game
+
+from models import db, Game, User
 
 
 app = Flask( __name__ )
@@ -13,8 +17,59 @@ migrate = Migrate( app, db )
 
 db.init_app( app )
 
+api = Api( app )
+
+@app.errorhandler( NotFound )
+def handle_not_found( e ):
+    return make_response( { 'error': 'BUY A NEW MAP, YOU ARE LOST!!!' } )
 
 
+
+class Users( Resource ):
+
+    def get( self ):
+        users = [ user.to_dict() for user in User.query.all() ]
+        return make_response( users, 200 )
+
+    def post( self ):
+        data = request.get_json()
+        new_user = User( name = data[ 'name' ] )
+        db.session.add( new_user )
+        db.session.commit()
+        return make_response( new_user.to_dict(), 201 )        
+
+api.add_resource( Users, '/users' )
+
+
+class UsersById( Resource ):
+
+    def get( self, id ):
+        user = User.query.filter_by( id = id ).first()
+        if user == None:
+            return make_response( {'error': 'User not found' }, 404 )
+        return make_response( user.to_dict(), 200 )
+
+    def patch( self, id ):
+        user = User.query.filter_by( id = id ).first()
+        if user == None:
+            return make_response( {'error': 'User not found' }, 404 )
+        data = request.get_json()
+        for key in data.keys():
+            setattr( user, key, data[key] )
+        db.session.add( user )
+        db.session.commit()
+        return make_response( user.to_dict(), 200 )
+
+    def delete( self, id ):
+        user = User.query.filter_by( id = id ).first()
+        if user == None:
+            return make_response( {'error': 'User not found' }, 404 )
+        db.session.delete( user )
+        db.session.commit()
+        return make_response( user.to_dict(), 200 )
+
+
+api.add_resource( UsersById, '/users/<int:id>' )
 
 
 
@@ -60,11 +115,7 @@ def games_by_id( id ):
     if request.method == 'GET':
         response = make_response( game.to_dict(), 200 )
         return response
-    elif request.method == 'PATCH'
-
-        #change that game instance and commit to the db, then respond
-    elif request.method == 'DELETE'
-        #delete the insance from the DB, then....
+    
     
 
 
