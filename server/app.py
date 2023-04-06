@@ -62,11 +62,6 @@ def games_by_id( id ):
     if request.method == 'GET':
         response = make_response( game.to_dict(), 200  )
         return response
-    elif request.method == 'PATCH':
-        # edit the above "game" instance, add & commit
-    elif request.method == 'DELETE'
-        #delete from database 
-
 
 
 

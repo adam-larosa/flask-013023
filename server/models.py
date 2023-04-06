@@ -15,6 +15,19 @@ class Game( db.Model, SerializerMixin ):
     price = db.Column( db.Float )
 
     reviews = db.relationship( 'Review', backref='game' )
+    
+    @property
+    def users( self ):
+        return [ r.user for r in self.reviews ]
+
+    def to_dict( self ):
+        return {
+            'id': self.id,
+            'title': self.title,
+            'price': self.price,
+            'reviews': [ r.to_dict() for r in self.reviews ],
+            'users': [ u.to_dict() for u in self.users ]
+        }
 
 
 
@@ -28,6 +41,12 @@ class Review( db.Model, SerializerMixin ):
 
     user_id = db.Column( db.Integer, db.ForeignKey( 'users.id' ) )
     game_id = db.Column( db.Integer, db.ForeignKey( 'games.id' ) )
+
+    def to_dict( self ):
+        return {
+            'id': self.id,
+            'content': self.content
+        }
 
 
 
